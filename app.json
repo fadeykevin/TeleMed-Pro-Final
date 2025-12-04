@@ -34,6 +34,10 @@
     "web": {
       "favicon": "./assets/favicon.png"
     },
+    "plugins": [
+      "expo-mail-composer"
+    ],
+    "sdkVersion": "54.0.0",
     "extra": {
       "eas": {
         "projectId": "79cda460-fcdd-4de9-bc77-d62cd1187d29"
