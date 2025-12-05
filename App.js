@@ -1,108 +1,96 @@
-import React, { useState } from 'react';
+﻿import React from 'react';
 import { NavigationContainer } from '@react-navigation/native';
+import { createStackNavigator } from '@react-navigation/stack';
 import { createBottomTabNavigator } from '@react-navigation/bottom-tabs';
-import { Text, View, Platform } from 'react-native';
-import { SafeAreaView } from 'react-native-safe-area-context';
+import { Text } from 'react-native';
+
+// Importar todas las pantallas
 import LoginScreen from './src/screens/LoginScreen';
 import HomeScreen from './src/screens/HomeScreen';
 import ChatScreen from './src/screens/ChatScreen';
+import ProfileScreen from './src/screens/ProfileScreen';
 import AppointmentsScreen from './src/screens/AppointmentsScreen';
 import PrescriptionsScreen from './src/screens/PrescriptionsScreen';
-import ProfileScreen from './src/screens/ProfileScreen';
+import VideoCallScreen from './src/screens/VideoCallScreen';
+import EmergencyScreen from './src/screens/EmergencyScreen';
+import NewAppointmentScreen from './src/screens/NewAppointmentScreen';
 
+const Stack = createStackNavigator();
 const Tab = createBottomTabNavigator();
 
-function TabIcon({ emoji, label, focused }) {
-  return (
-    <View style={{ alignItems: 'center', justifyContent: 'center', paddingTop: 5 }}>
-      <Text style={{ fontSize: 24, marginBottom: 3 }}>
-        {emoji}
-      </Text>
-      <Text style={{ 
-        fontSize: 10, 
-        fontWeight: '600',
-        color: focused ? '#0088CC' : '#999',
-      }}>
-        {label}
-      </Text>
-    </View>
-  );
-}
-
+// Navegador de pestañas inferior
 function MainTabs() {
   return (
     <Tab.Navigator
       screenOptions={{
+        tabBarActiveTintColor: '#0088CC',
+        tabBarInactiveTintColor: '#999',
         headerShown: false,
-        tabBarShowLabel: false,
-        tabBarStyle: { 
-          position: 'absolute',
-          bottom: 20,
-          left: 10,
-          right: 10,
-          height: 65,
+        tabBarStyle: {
+          height: 70,
           paddingBottom: 10,
-          paddingTop: 5,
-          backgroundColor: '#fff',
-          borderRadius: 15,
-          borderTopWidth: 0,
-          elevation: 10,
-          shadowColor: '#000',
-          shadowOffset: { width: 0, height: -2 },
-          shadowOpacity: 0.1,
-          shadowRadius: 8,
-        },
+          paddingTop: 10
+        }
       }}
     >
       <Tab.Screen 
         name="Inicio" 
         component={HomeScreen}
-        options={{ 
-          tabBarIcon: ({ focused }) => <TabIcon emoji="🏠" label="Inicio" focused={focused} /> 
+        options={{
+          tabBarIcon: () => <Text style={{ fontSize: 24 }}>🏠</Text>
         }}
       />
       <Tab.Screen 
         name="Chat" 
         component={ChatScreen}
-        options={{ 
-          tabBarIcon: ({ focused }) => <TabIcon emoji="💬" label="Chat" focused={focused} /> 
+        options={{
+          tabBarIcon: () => <Text style={{ fontSize: 24 }}>💬</Text>
         }}
       />
       <Tab.Screen 
         name="Citas" 
         component={AppointmentsScreen}
-        options={{ 
-          tabBarIcon: ({ focused }) => <TabIcon emoji="📅" label="Citas" focused={focused} /> 
+        options={{
+          tabBarIcon: () => <Text style={{ fontSize: 24 }}>📅</Text>
         }}
       />
       <Tab.Screen 
         name="Recetas" 
         component={PrescriptionsScreen}
-        options={{ 
-          tabBarIcon: ({ focused }) => <TabIcon emoji="💊" label="Recetas" focused={focused} /> 
+        options={{
+          tabBarIcon: () => <Text style={{ fontSize: 24 }}>💊</Text>
         }}
       />
       <Tab.Screen 
         name="Perfil" 
         component={ProfileScreen}
-        options={{ 
-          tabBarIcon: ({ focused }) => <TabIcon emoji="👤" label="Perfil" focused={focused} /> 
+        options={{
+          tabBarIcon: () => <Text style={{ fontSize: 24 }}>👤</Text>
         }}
       />
     </Tab.Navigator>
   );
 }
 
+// Navegador principal
 export default function App() {
-  const [isLoggedIn, setIsLoggedIn] = useState(false);
-
-  if (!isLoggedIn) {
-    return <LoginScreen onLogin={() => setIsLoggedIn(true)} />;
-  }
-
   return (
     <NavigationContainer>
-      <MainTabs />
+      <Stack.Navigator
+        screenOptions={{
+          headerShown: false
+        }}
+      >
+        <Stack.Screen name="Login" component={LoginScreen} />
+        <Stack.Screen name="Home" component={MainTabs} />
+        <Stack.Screen name="VideoCall" component={VideoCallScreen} />
+        <Stack.Screen name="Emergency" component={EmergencyScreen} />
+        <Stack.Screen name="NewAppointment" component={NewAppointmentScreen} />
+        <Stack.Screen name="Profile" component={ProfileScreen} />
+        <Stack.Screen name="Prescriptions" component={PrescriptionsScreen} />
+        <Stack.Screen name="Appointments" component={AppointmentsScreen} />
+        <Stack.Screen name="Chat" component={ChatScreen} />
+      </Stack.Navigator>
     </NavigationContainer>
   );
 }

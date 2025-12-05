@@ -1,7 +1,7 @@
-{
+﻿{
   "expo": {
     "name": "TeleMed Pro",
-    "slug": "TeleMedProFinal",
+    "slug": "telemedprofinal",
     "version": "1.0.0",
     "orientation": "portrait",
     "icon": "./assets/icon.png",
@@ -16,32 +16,14 @@
     ],
     "ios": {
       "supportsTablet": true,
-      "bundleIdentifier": "com.kevin2424.TeleMedProFinal"
+      "bundleIdentifier": "com.kevin2424.telemedprofinal"
     },
     "android": {
-      "package": "com.kevin2424.TeleMedProFinal",
-      "versionCode": 1,
       "adaptiveIcon": {
         "foregroundImage": "./assets/adaptive-icon.png",
         "backgroundColor": "#0088CC"
       },
-      "permissions": [
-        "CAMERA",
-        "READ_EXTERNAL_STORAGE",
-        "WRITE_EXTERNAL_STORAGE"
-      ]
-    },
-    "web": {
-      "favicon": "./assets/favicon.png"
-    },
-    "plugins": [
-      "expo-mail-composer"
-    ],
-    "sdkVersion": "54.0.0",
-    "extra": {
-      "eas": {
-        "projectId": "79cda460-fcdd-4de9-bc77-d62cd1187d29"
-      }
+      "package": "com.kevin2424.telemedprofinal"
     }
   }
 }

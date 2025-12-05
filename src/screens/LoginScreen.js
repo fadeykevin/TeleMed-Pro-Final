@@ -1,145 +1,175 @@
-import React, { useState } from 'react';
-import { View, Text, TextInput, TouchableOpacity, StyleSheet, Image, Alert } from 'react-native';
+﻿import React, { useState } from 'react';
+import { View, Text, TextInput, TouchableOpacity, StyleSheet, Alert, KeyboardAvoidingView, Platform } from 'react-native';
 
-export default function LoginScreen({ onLogin }) {
+export default function LoginScreen({ navigation }) {
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
 
   const handleLogin = () => {
-    if (!email || !password) {
-      Alert.alert('❌ Error', 'Completa todos los campos');
+    if (email.trim() === '' || password.trim() === '') {
+      Alert.alert('Error', 'Por favor ingresa email y contraseña');
       return;
     }
-    
-    Alert.alert('✅ Bienvenido', `Hola ${email}`);
-    onLogin();
+
+    // Simular login exitoso
+    Alert.alert(
+      'Bienvenido',
+      'Inicio de sesion exitoso',
+      [
+        {
+          text: 'OK',
+          onPress: () => navigation.replace('Home')
+        }
+      ]
+    );
   };
 
   return (
-    <View style={styles.container}>
-      <View style={styles.header}>
-        <Text style={styles.logo}>⚕️</Text>
-        <Text style={styles.title}>TeleMed Pro</Text>
-        <Text style={styles.subtitle}>Tu salud en tus manos</Text>
+    <KeyboardAvoidingView 
+      style={styles.container}
+      behavior={Platform.OS === 'ios' ? 'padding' : 'height'}
+    >
+      <View style={styles.content}>
+        <View style={styles.logoContainer}>
+          <Text style={styles.logo}>🏥</Text>
+          <Text style={styles.title}>TeleMed Pro</Text>
+          <Text style={styles.subtitle}>Tu salud en tus manos</Text>
+        </View>
+
+        <View style={styles.formContainer}>
+          <Text style={styles.label}>Email</Text>
+          <TextInput
+            style={styles.input}
+            placeholder="tu@email.com"
+            value={email}
+            onChangeText={setEmail}
+            keyboardType="email-address"
+            autoCapitalize="none"
+            autoCorrect={false}
+          />
+
+          <Text style={styles.label}>Contraseña</Text>
+          <TextInput
+            style={styles.input}
+            placeholder="••••••••"
+            value={password}
+            onChangeText={setPassword}
+            secureTextEntry
+            autoCapitalize="none"
+          />
+
+          <TouchableOpacity style={styles.loginButton} onPress={handleLogin}>
+            <Text style={styles.loginButtonText}>Iniciar Sesion</Text>
+          </TouchableOpacity>
+
+          <TouchableOpacity 
+            style={styles.forgotPassword}
+            onPress={() => Alert.alert('Recuperar Contraseña', 'Funcionalidad en desarrollo')}
+          >
+            <Text style={styles.forgotPasswordText}>¿Olvidaste tu contraseña?</Text>
+          </TouchableOpacity>
+
+          <View style={styles.registerContainer}>
+            <Text style={styles.registerText}>¿No tienes cuenta? </Text>
+            <TouchableOpacity onPress={() => Alert.alert('Registro', 'Funcionalidad en desarrollo')}>
+              <Text style={styles.registerLink}>Registrate</Text>
+            </TouchableOpacity>
+          </View>
+        </View>
+
+        <Text style={styles.version}>Version 1.0.0</Text>
       </View>
-
-      <View style={styles.form}>
-        <Text style={styles.label}>Email</Text>
-        <TextInput
-          style={styles.input}
-          value={email}
-          onChangeText={setEmail}
-          placeholder="correo@ejemplo.com"
-          keyboardType="email-address"
-          autoCapitalize="none"
-        />
-
-        <Text style={styles.label}>Contraseña</Text>
-        <TextInput
-          style={styles.input}
-          value={password}
-          onChangeText={setPassword}
-          placeholder="••••••••"
-          secureTextEntry
-        />
-
-        <TouchableOpacity style={styles.loginButton} onPress={handleLogin}>
-          <Text style={styles.loginButtonText}>Iniciar Sesión</Text>
-        </TouchableOpacity>
-
-        <TouchableOpacity style={styles.forgotButton}>
-          <Text style={styles.forgotText}>¿Olvidaste tu contraseña?</Text>
-        </TouchableOpacity>
-      </View>
-
-      <View style={styles.footer}>
-        <Text style={styles.footerText}>¿No tienes cuenta?</Text>
-        <TouchableOpacity>
-          <Text style={styles.registerText}>Regístrate aquí</Text>
-        </TouchableOpacity>
-      </View>
-    </View>
+    </KeyboardAvoidingView>
   );
 }
 
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-    backgroundColor: '#fff',
-    justifyContent: 'center',
-    padding: 20,
+    backgroundColor: '#0088CC'
   },
-  header: {
+  content: {
+    flex: 1,
+    justifyContent: 'center',
+    paddingHorizontal: 30
+  },
+  logoContainer: {
     alignItems: 'center',
-    marginBottom: 40,
+    marginBottom: 50
   },
   logo: {
     fontSize: 80,
-    marginBottom: 10,
+    marginBottom: 10
   },
   title: {
     fontSize: 32,
     fontWeight: 'bold',
-    color: '#0088CC',
-    marginBottom: 8,
+    color: '#fff',
+    marginBottom: 5
   },
   subtitle: {
     fontSize: 16,
-    color: '#666',
+    color: '#B3E5FC'
   },
-  form: {
-    width: '100%',
+  formContainer: {
+    backgroundColor: '#fff',
+    borderRadius: 20,
+    padding: 25,
+    elevation: 5
   },
   label: {
     fontSize: 14,
     fontWeight: '600',
     color: '#333',
     marginBottom: 8,
-    marginTop: 16,
+    marginTop: 15
   },
   input: {
     backgroundColor: '#f5f5f5',
+    borderRadius: 10,
     padding: 15,
-    borderRadius: 12,
     fontSize: 16,
     borderWidth: 1,
-    borderColor: '#e0e0e0',
+    borderColor: '#e0e0e0'
   },
   loginButton: {
     backgroundColor: '#0088CC',
-    padding: 16,
-    borderRadius: 12,
+    borderRadius: 10,
+    padding: 15,
     alignItems: 'center',
-    marginTop: 24,
-    elevation: 2,
+    marginTop: 25
   },
   loginButtonText: {
     color: '#fff',
     fontSize: 16,
-    fontWeight: 'bold',
+    fontWeight: 'bold'
   },
-  forgotButton: {
+  forgotPassword: {
     alignItems: 'center',
-    marginTop: 16,
+    marginTop: 15
   },
-  forgotText: {
+  forgotPasswordText: {
     color: '#0088CC',
-    fontSize: 14,
+    fontSize: 14
   },
-  footer: {
+  registerContainer: {
     flexDirection: 'row',
     justifyContent: 'center',
-    alignItems: 'center',
-    marginTop: 40,
-    gap: 5,
-  },
-  footerText: {
-    color: '#666',
-    fontSize: 14,
+    marginTop: 20
   },
   registerText: {
+    color: '#666',
+    fontSize: 14
+  },
+  registerLink: {
     color: '#0088CC',
     fontSize: 14,
-    fontWeight: 'bold',
+    fontWeight: 'bold'
   },
+  version: {
+    textAlign: 'center',
+    color: '#B3E5FC',
+    fontSize: 12,
+    marginTop: 30
+  }
 });

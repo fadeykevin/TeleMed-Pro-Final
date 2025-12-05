@@ -1,455 +1,926 @@
-import React, { useState } from 'react';
-import {
-  View,
-  Text,
-  ScrollView,
-  TouchableOpacity,
-  StyleSheet,
-  TextInput,
+﻿import React, { useState } from 'react';
+import { 
+  View, 
+  Text, 
+  ScrollView, 
+  StyleSheet, 
+  TouchableOpacity, 
+  Alert, 
+  Linking, 
   Modal,
-  Alert,
-  Image,
-  Linking
+  TextInput
 } from 'react-native';
-import * as ImagePicker from 'expo-image-picker';
 
 export default function ProfileScreen({ navigation }) {
-  const [profileData, setProfileData] = useState({
-    fullName: 'Kevin Rodas',
-    email: 'kevin@example.com',
-    phone: '+56 9 1234 5678',
+  const [showEditModal, setShowEditModal] = useState(false);
+  const [showContactsModal, setShowContactsModal] = useState(false);
+  const [showMedicalModal, setShowMedicalModal] = useState(false);
+  const [showPersonalModal, setShowPersonalModal] = useState(false);
+  
+  const [userProfile, setUserProfile] = useState({
+    name: 'Juan Perez',
+    email: 'juan.perez@email.com',
+    phone: '+56912345678',
     birthDate: '15/03/1990',
     bloodType: 'O+',
     address: 'Av. Principal 123, Santiago, Chile',
-    profileImage: null
+    allergies: ['Penicilina', 'Polen'],
+    conditions: ['Hipertension', 'Diabetes tipo 2'],
+    emergencyContacts: [
+      { name: 'Maria Rodas', relation: 'Hija', phone: '+56987654321' },
+      { name: 'Carmen Lopez', relation: 'Cuidadora', phone: '+56955551234' }
+    ]
   });
 
-  const [medicalInfo, setMedicalInfo] = useState({
-    allergies: ['Penicilina', 'Mariscos'],
-    conditions: ['Hipertensión', 'Diabetes tipo 2'],
-    medications: ['Omeprazol 20mg', 'Metformina 850mg']
-  });
+  const [editName, setEditName] = useState(userProfile.name);
+  const [editEmail, setEditEmail] = useState(userProfile.email);
+  const [editPhone, setEditPhone] = useState(userProfile.phone);
+  const [editBirthDate, setEditBirthDate] = useState(userProfile.birthDate);
+  const [editBloodType, setEditBloodType] = useState(userProfile.bloodType);
+  const [editAddress, setEditAddress] = useState(userProfile.address);
 
-  const [emergencyContacts, setEmergencyContacts] = useState([
-    { id: 1, name: 'María Rodas', relationship: 'Hija', phone: '+56987654321', emoji: '👧' },
-    { id: 2, name: 'Carmen López', relationship: 'Cuidadora', phone: '+56955551234', emoji: '👩‍⚕️' },
-    { id: 3, name: 'Dr. Silva', relationship: 'Médico', phone: '+56999998888', emoji: '👨‍⚕️' }
-  ]);
-
-  const [personalInfoVisible, setPersonalInfoVisible] = useState(false);
-  const [allergiesVisible, setAllergiesVisible] = useState(false);
-  const [conditionsVisible, setConditionsVisible] = useState(false);
-  const [emergencyContactsVisible, setEmergencyContactsVisible] = useState(false);
-  const [contactFormVisible, setContactFormVisible] = useState(false);
-  const [editingContact, setEditingContact] = useState(null);
-
-  const [tempContact, setTempContact] = useState({ name: '', relationship: '', phone: '', emoji: '👤' });
-
-  const contactEmojis = ['👧', '👦', '👨', '👩', '👴', '👵', '👨‍⚕️', '👩‍⚕️', '👤', '🚑'];
-
-  const handleChangePhoto = async () => {
-    try {
-      const result = await ImagePicker.launchImageLibraryAsync({
-        mediaTypes: ImagePicker.MediaTypeOptions.Images,
-        allowsEditing: true,
-        aspect: [1, 1],
-        quality: 0.8,
-      });
-      if (!result.canceled) {
-        setProfileData({ ...profileData, profileImage: result.assets[0].uri });
-        Alert.alert('✅ Éxito', 'Foto actualizada');
-      }
-    } catch (error) {
-      Alert.alert('❌ Error', 'No se pudo cambiar la foto');
-    }
+  const handleEditProfile = () => {
+    setShowEditModal(true);
   };
 
-  const handleCall = (contact) => {
-    Alert.alert(
-      `📞 Llamar a ${contact.name}`,
-      `${contact.relationship}\n${contact.phone}`,
+  const handleEditContacts = () => {
+    setShowEditModal(false);
+    setTimeout(() => setShowContactsModal(true), 300);
+  };
+
+  const handleEditMedical = () => {
+    setShowEditModal(false);
+    setTimeout(() => setShowMedicalModal(true), 300);
+  };
+
+  const handleEditPersonal = () => {
+    setShowEditModal(false);
+    setEditName(userProfile.name);
+    setEditEmail(userProfile.email);
+    setEditPhone(userProfile.phone);
+    setEditBirthDate(userProfile.birthDate);
+    setEditBloodType(userProfile.bloodType);
+    setEditAddress(userProfile.address);
+    setTimeout(() => setShowPersonalModal(true), 300);
+  };
+
+  const savePersonalData = () => {
+    setUserProfile({
+      ...userProfile,
+      name: editName,
+      email: editEmail,
+      phone: editPhone,
+      birthDate: editBirthDate,
+      bloodType: editBloodType,
+      address: editAddress
+    });
+    setShowPersonalModal(false);
+    Alert.alert('Exito', 'Datos personales actualizados correctamente');
+  };
+
+  const addAllergy = () => {
+    Alert.prompt(
+      'Agregar Alergia',
+      'Ingresa el nombre de la alergia:',
       [
         { text: 'Cancelar', style: 'cancel' },
-        { text: 'Llamar', onPress: () => Linking.openURL(`tel:${contact.phone}`) }
+        {
+          text: 'Agregar',
+          onPress: (text) => {
+            if (text && text.trim()) {
+              setUserProfile({
+                ...userProfile,
+                allergies: [...userProfile.allergies, text.trim()]
+              });
+              Alert.alert('Exito', 'Alergia agregada correctamente');
+            }
+          }
+        }
+      ],
+      'plain-text'
+    );
+  };
+
+  const removeAllergy = (index) => {
+    Alert.alert(
+      'Eliminar Alergia',
+      'Estas seguro de eliminar esta alergia?',
+      [
+        { text: 'Cancelar', style: 'cancel' },
+        {
+          text: 'Eliminar',
+          style: 'destructive',
+          onPress: () => {
+            const newAllergies = userProfile.allergies.filter((_, i) => i !== index);
+            setUserProfile({ ...userProfile, allergies: newAllergies });
+            Alert.alert('Exito', 'Alergia eliminada');
+          }
+        }
       ]
     );
   };
 
-  const handleSaveContact = () => {
-    if (!tempContact.name || !tempContact.phone) {
-      Alert.alert('❌ Error', 'Completa nombre y teléfono');
-      return;
-    }
-    if (editingContact) {
-      setEmergencyContacts(emergencyContacts.map(c => c.id === editingContact.id ? { ...tempContact, id: c.id } : c));
-      Alert.alert('✅ Actualizado');
-    } else {
-      setEmergencyContacts([...emergencyContacts, { ...tempContact, id: Date.now() }]);
-      Alert.alert('✅ Agregado');
-    }
-    setContactFormVisible(false);
-    setTempContact({ name: '', relationship: '', phone: '', emoji: '👤' });
+  const addCondition = () => {
+    Alert.prompt(
+      'Agregar Condicion',
+      'Ingresa el nombre de la condicion medica:',
+      [
+        { text: 'Cancelar', style: 'cancel' },
+        {
+          text: 'Agregar',
+          onPress: (text) => {
+            if (text && text.trim()) {
+              setUserProfile({
+                ...userProfile,
+                conditions: [...userProfile.conditions, text.trim()]
+              });
+              Alert.alert('Exito', 'Condicion agregada correctamente');
+            }
+          }
+        }
+      ],
+      'plain-text'
+    );
   };
 
-  const handleDeleteContact = (contactId) => {
-    Alert.alert('⚠️ Confirmar', '¿Eliminar este contacto?', [
-      { text: 'Cancelar', style: 'cancel' },
-      { text: 'Eliminar', style: 'destructive', onPress: () => {
-        setEmergencyContacts(emergencyContacts.filter(c => c.id !== contactId));
-        Alert.alert('✅ Eliminado');
-      }}
-    ]);
+  const removeCondition = (index) => {
+    Alert.alert(
+      'Eliminar Condicion',
+      'Estas seguro de eliminar esta condicion?',
+      [
+        { text: 'Cancelar', style: 'cancel' },
+        {
+          text: 'Eliminar',
+          style: 'destructive',
+          onPress: () => {
+            const newConditions = userProfile.conditions.filter((_, i) => i !== index);
+            setUserProfile({ ...userProfile, conditions: newConditions });
+            Alert.alert('Exito', 'Condicion eliminada');
+          }
+        }
+      ]
+    );
   };
 
-  const openEditContact = (contact) => {
-    setEditingContact(contact);
-    setTempContact(contact);
-    setContactFormVisible(true);
+  const addContact = () => {
+    Alert.alert('Agregar Contacto', 'Funcionalidad de agregar contacto completo en desarrollo');
   };
 
-  const openAddContact = () => {
-    setEditingContact(null);
-    setTempContact({ name: '', relationship: '', phone: '', emoji: '👤' });
-    setContactFormVisible(true);
+  const removeContact = (index) => {
+    Alert.alert(
+      'Eliminar Contacto',
+      'Estas seguro de eliminar este contacto?',
+      [
+        { text: 'Cancelar', style: 'cancel' },
+        {
+          text: 'Eliminar',
+          style: 'destructive',
+          onPress: () => {
+            const newContacts = userProfile.emergencyContacts.filter((_, i) => i !== index);
+            setUserProfile({ ...userProfile, emergencyContacts: newContacts });
+            Alert.alert('Exito', 'Contacto eliminado');
+          }
+        }
+      ]
+    );
   };
 
-  const handleAddAllergy = () => {
-    Alert.prompt('⚠️ Nueva Alergia', 'Ingresa el nombre:', [
-      { text: 'Cancelar', style: 'cancel' },
-      { text: 'Agregar', onPress: (text) => {
-        if (text?.trim()) setMedicalInfo({ ...medicalInfo, allergies: [...medicalInfo.allergies, text.trim()] });
-      }}
-    ]);
+  const handleAllergies = () => {
+    const allergiesList = userProfile.allergies.join('\n- ');
+    Alert.alert(
+      'Mis Alergias',
+      'Tienes ' + userProfile.allergies.length + ' alergias registradas:\n\n- ' + allergiesList,
+      [
+        { text: 'Agregar Nueva', onPress: addAllergy },
+        { text: 'Cerrar' }
+      ]
+    );
   };
 
-  const handleRemoveAllergy = (index) => {
-    setMedicalInfo({ ...medicalInfo, allergies: medicalInfo.allergies.filter((_, i) => i !== index) });
+  const handleConditions = () => {
+    const conditionsList = userProfile.conditions.join('\n- ');
+    Alert.alert(
+      'Condiciones Medicas',
+      'Tienes ' + userProfile.conditions.length + ' condiciones registradas:\n\n- ' + conditionsList,
+      [
+        { text: 'Agregar Nueva', onPress: addCondition },
+        { text: 'Cerrar' }
+      ]
+    );
   };
 
-  const handleAddCondition = () => {
-    Alert.prompt('🩺 Nueva Condición', 'Ingresa la condición:', [
-      { text: 'Cancelar', style: 'cancel' },
-      { text: 'Agregar', onPress: (text) => {
-        if (text?.trim()) setMedicalInfo({ ...medicalInfo, conditions: [...medicalInfo.conditions, text.trim()] });
-      }}
-    ]);
+  const handleViewAllContacts = () => {
+    setShowContactsModal(true);
   };
 
-  const handleRemoveCondition = (index) => {
-    setMedicalInfo({ ...medicalInfo, conditions: medicalInfo.conditions.filter((_, i) => i !== index) });
+  const handleCall = (phone, name) => {
+    Alert.alert(
+      'Llamar a ' + name,
+      'Deseas llamar a ' + phone + '?',
+      [
+        {
+          text: 'Llamar',
+          onPress: () => {
+            Linking.openURL('tel:' + phone).catch(() => {
+              Alert.alert('Error', 'No se pudo realizar la llamada');
+            });
+          }
+        },
+        { text: 'Cancelar', style: 'cancel' }
+      ]
+    );
+  };
+
+  const handleLogout = () => {
+    Alert.alert(
+      'Cerrar Sesion',
+      'Estas seguro de que deseas cerrar sesion?',
+      [
+        { text: 'Cancelar', style: 'cancel' },
+        {
+          text: 'Cerrar Sesion',
+          style: 'destructive',
+          onPress: () => {
+            Alert.alert('Exito', 'Sesion cerrada correctamente');
+            setTimeout(() => {
+              navigation.replace('Login');
+            }, 1000);
+          }
+        }
+      ]
+    );
   };
 
   return (
-    <ScrollView style={styles.container}>
-      <View style={styles.header}>
-        <TouchableOpacity onPress={handleChangePhoto}>
-          <View style={styles.profileImageContainer}>
-            {profileData.profileImage ? (
-              <Image source={{ uri: profileData.profileImage }} style={styles.profileImage} />
-            ) : (
-              <View style={styles.profileImagePlaceholder}>
-                <Text style={styles.profilePlaceholderIcon}>👤</Text>
+    <View style={styles.container}>
+      <ScrollView>
+        <View style={styles.header}>
+          <View style={styles.avatarContainer}>
+            <Text style={styles.avatarText}>JP</Text>
+          </View>
+          <Text style={styles.userName}>{userProfile.name}</Text>
+          <Text style={styles.userEmail}>{userProfile.email}</Text>
+          <TouchableOpacity style={styles.editButton} onPress={handleEditProfile}>
+            <Text style={styles.editButtonText}>Editar Perfil</Text>
+          </TouchableOpacity>
+        </View>
+
+        <View style={styles.section}>
+          <Text style={styles.sectionTitle}>Informacion Personal</Text>
+          <View style={styles.infoCard}>
+            <View style={styles.infoRow}>
+              <Text style={styles.infoLabel}>TELEFONO</Text>
+              <Text style={styles.infoValue}>{userProfile.phone}</Text>
+            </View>
+            <View style={styles.infoRow}>
+              <Text style={styles.infoLabel}>FECHA NAC.</Text>
+              <Text style={styles.infoValue}>{userProfile.birthDate}</Text>
+            </View>
+            <View style={styles.infoRow}>
+              <Text style={styles.infoLabel}>TIPO SANGRE</Text>
+              <Text style={styles.infoValue}>{userProfile.bloodType}</Text>
+            </View>
+            <View style={[styles.infoRow, { borderBottomWidth: 0 }]}>
+              <Text style={styles.infoLabel}>DIRECCION</Text>
+              <Text style={styles.infoValue}>{userProfile.address}</Text>
+            </View>
+          </View>
+        </View>
+
+        <View style={styles.section}>
+          <Text style={styles.sectionTitle}>Informacion Medica</Text>
+          
+          <TouchableOpacity style={styles.medicalCard} onPress={handleAllergies}>
+            <View style={styles.medicalIcon}>
+              <Text style={styles.medicalIconText}>!</Text>
+            </View>
+            <View style={styles.medicalInfo}>
+              <Text style={styles.medicalTitle}>Alergias</Text>
+              <Text style={styles.medicalSubtitle}>{userProfile.allergies.length} registradas</Text>
+            </View>
+            <Text style={styles.arrow}>›</Text>
+          </TouchableOpacity>
+
+          <TouchableOpacity style={styles.medicalCard} onPress={handleConditions}>
+            <View style={styles.medicalIcon}>
+              <Text style={styles.medicalIconText}>+</Text>
+            </View>
+            <View style={styles.medicalInfo}>
+              <Text style={styles.medicalTitle}>Condiciones Medicas</Text>
+              <Text style={styles.medicalSubtitle}>{userProfile.conditions.length} condiciones</Text>
+            </View>
+            <Text style={styles.arrow}>›</Text>
+          </TouchableOpacity>
+        </View>
+
+        <View style={styles.section}>
+          <View style={styles.sectionHeader}>
+            <Text style={styles.sectionTitle}>Contactos de Emergencia</Text>
+            <TouchableOpacity onPress={handleViewAllContacts}>
+              <Text style={styles.viewAll}>Ver todos</Text>
+            </TouchableOpacity>
+          </View>
+
+          {userProfile.emergencyContacts.map((contact, index) => (
+            <View key={index} style={styles.contactCard}>
+              <View style={styles.contactAvatar}>
+                <Text style={styles.contactAvatarText}>{contact.name.charAt(0)}</Text>
               </View>
-            )}
-            <View style={styles.cameraButton}>
-              <Text style={styles.cameraIcon}>📷</Text>
-            </View>
-          </View>
-        </TouchableOpacity>
-        <Text style={styles.profileName}>{profileData.fullName}</Text>
-        <Text style={styles.profileEmail}>{profileData.email}</Text>
-      </View>
-
-      <View style={styles.section}>
-        <View style={styles.sectionHeader}>
-          <Text style={styles.sectionTitle}>Información Personal</Text>
-          <TouchableOpacity onPress={() => setPersonalInfoVisible(true)}>
-            <Text style={styles.editLink}>✏️ Editar</Text>
-          </TouchableOpacity>
-        </View>
-        <View style={styles.card}>
-          <InfoItem label="NOMBRE" value={profileData.fullName} />
-          <InfoItem label="EMAIL" value={profileData.email} />
-          <InfoItem label="TELÉFONO" value={profileData.phone} />
-          <InfoItem label="FECHA NAC." value={profileData.birthDate} />
-          <InfoItem label="TIPO SANGRE" value={profileData.bloodType} icon="🩸" />
-          <InfoItem label="DIRECCIÓN" value={profileData.address} />
-        </View>
-      </View>
-
-      <View style={styles.section}>
-        <Text style={styles.sectionTitle}>Información Médica</Text>
-        <TouchableOpacity style={styles.menuItem} onPress={() => setAllergiesVisible(true)}>
-          <Text style={styles.menuIcon}>⚠️</Text>
-          <View style={styles.menuContent}>
-            <Text style={styles.menuText}>Alergias</Text>
-            <Text style={styles.menuSubtext}>{medicalInfo.allergies.length} registradas</Text>
-          </View>
-          <Text style={styles.menuArrow}>›</Text>
-        </TouchableOpacity>
-        <TouchableOpacity style={styles.menuItem} onPress={() => setConditionsVisible(true)}>
-          <Text style={styles.menuIcon}>🩹</Text>
-          <View style={styles.menuContent}>
-            <Text style={styles.menuText}>Condiciones Médicas</Text>
-            <Text style={styles.menuSubtext}>{medicalInfo.conditions.length} condiciones</Text>
-          </View>
-          <Text style={styles.menuArrow}>›</Text>
-        </TouchableOpacity>
-      </View>
-
-      <View style={styles.section}>
-        <View style={styles.sectionHeader}>
-          <Text style={styles.sectionTitle}>Contactos de Emergencia</Text>
-          <TouchableOpacity onPress={() => setEmergencyContactsVisible(true)}>
-            <Text style={styles.viewAllLink}>Ver todos ›</Text>
-          </TouchableOpacity>
-        </View>
-        {emergencyContacts.slice(0, 2).map(contact => (
-          <TouchableOpacity key={contact.id} style={styles.contactCard} onPress={() => handleCall(contact)}>
-            <View style={styles.contactIcon}>
-              <Text style={styles.contactEmoji}>{contact.emoji}</Text>
-            </View>
-            <View style={styles.contactInfo}>
-              <Text style={styles.contactName}>{contact.name}</Text>
-              <Text style={styles.contactRelationship}>{contact.relationship}</Text>
-              <Text style={styles.contactPhone}>{contact.phone}</Text>
-            </View>
-            <TouchableOpacity style={styles.callButton} onPress={() => handleCall(contact)}>
-              <Text style={styles.callButtonIcon}>📞</Text>
-            </TouchableOpacity>
-          </TouchableOpacity>
-        ))}
-      </View>
-
-      <TouchableOpacity style={styles.logoutButton}>
-        <Text style={styles.logoutIcon}>🚪</Text>
-        <Text style={styles.logoutText}>Cerrar Sesión</Text>
-      </TouchableOpacity>
-      <View style={styles.footer} />      <Modal visible={personalInfoVisible} animationType="slide" transparent={true}>
-        <View style={styles.modalOverlay}>
-          <ScrollView style={styles.modalScroll}>
-            <View style={styles.modalContent}>
-              <Text style={styles.modalTitle}>✏️ Editar Información</Text>
-              <Text style={styles.inputLabel}>Nombre Completo</Text>
-              <TextInput style={styles.input} value={profileData.fullName} onChangeText={(text) => setProfileData({ ...profileData, fullName: text })} />
-              <Text style={styles.inputLabel}>Email</Text>
-              <TextInput style={styles.input} value={profileData.email} onChangeText={(text) => setProfileData({ ...profileData, email: text })} keyboardType="email-address" />
-              <Text style={styles.inputLabel}>Teléfono</Text>
-              <TextInput style={styles.input} value={profileData.phone} onChangeText={(text) => setProfileData({ ...profileData, phone: text })} keyboardType="phone-pad" />
-              <Text style={styles.inputLabel}>Fecha Nacimiento</Text>
-              <TextInput style={styles.input} value={profileData.birthDate} onChangeText={(text) => setProfileData({ ...profileData, birthDate: text })} />
-              <Text style={styles.inputLabel}>Tipo de Sangre</Text>
-              <TextInput style={styles.input} value={profileData.bloodType} onChangeText={(text) => setProfileData({ ...profileData, bloodType: text })} />
-              <Text style={styles.inputLabel}>Dirección</Text>
-              <TextInput style={[styles.input, styles.textArea]} value={profileData.address} onChangeText={(text) => setProfileData({ ...profileData, address: text })} multiline />
-              <TouchableOpacity style={styles.saveButton} onPress={() => { setPersonalInfoVisible(false); Alert.alert('✅ Guardado'); }}>
-                <Text style={styles.saveButtonText}>💾 Guardar</Text>
-              </TouchableOpacity>
-              <TouchableOpacity style={styles.cancelButton} onPress={() => setPersonalInfoVisible(false)}>
-                <Text style={styles.cancelButtonText}>Cancelar</Text>
+              <View style={styles.contactInfo}>
+                <Text style={styles.contactName}>{contact.name}</Text>
+                <Text style={styles.contactRelation}>{contact.relation}</Text>
+                <Text style={styles.contactPhone}>{contact.phone}</Text>
+              </View>
+              <TouchableOpacity
+                style={styles.callButton}
+                onPress={() => handleCall(contact.phone, contact.name)}
+              >
+                <Text style={styles.callButtonText}>LLAMAR</Text>
               </TouchableOpacity>
             </View>
-          </ScrollView>
+          ))}
         </View>
-      </Modal>
 
-      <Modal visible={allergiesVisible} animationType="slide" transparent={true}>
-        <View style={styles.modalOverlay}>
+        <TouchableOpacity style={styles.logoutButton} onPress={handleLogout}>
+          <Text style={styles.logoutButtonText}>Cerrar Sesion</Text>
+        </TouchableOpacity>
+
+        <View style={styles.bottomSpace} />
+      </ScrollView>
+      <Modal
+        visible={showEditModal}
+        transparent={true}
+        animationType="fade"
+        onRequestClose={() => setShowEditModal(false)}
+      >
+        <TouchableOpacity 
+          style={styles.modalOverlay}
+          activeOpacity={1}
+          onPress={() => setShowEditModal(false)}
+        >
           <View style={styles.modalContent}>
-            <Text style={styles.modalTitle}>⚠️ Alergias</Text>
-            <ScrollView style={styles.tagsList}>
-              {medicalInfo.allergies.map((allergy, index) => (
-                <View key={index} style={styles.allergyTag}>
-                  <Text style={styles.allergyText}>{allergy}</Text>
-                  <TouchableOpacity onPress={() => handleRemoveAllergy(index)}>
-                    <Text style={styles.allergyRemove}>×</Text>
-                  </TouchableOpacity>
-                </View>
-              ))}
-            </ScrollView>
-            <TouchableOpacity style={styles.addButton} onPress={handleAddAllergy}>
-              <Text style={styles.addButtonText}>➕ Agregar Alergia</Text>
+            <Text style={styles.modalTitle}>Editar Perfil</Text>
+            <Text style={styles.modalSubtitle}>Selecciona que deseas editar:</Text>
+
+            <TouchableOpacity style={styles.modalButton} onPress={handleEditContacts}>
+              <Text style={styles.modalButtonText}>CONTACTOS</Text>
             </TouchableOpacity>
-            <TouchableOpacity style={styles.cancelButton} onPress={() => setAllergiesVisible(false)}>
-              <Text style={styles.cancelButtonText}>Cerrar</Text>
+
+            <TouchableOpacity style={styles.modalButton} onPress={handleEditMedical}>
+              <Text style={styles.modalButtonText}>INFORMACION MEDICA</Text>
+            </TouchableOpacity>
+
+            <TouchableOpacity style={styles.modalButton} onPress={handleEditPersonal}>
+              <Text style={styles.modalButtonText}>DATOS PERSONALES</Text>
+            </TouchableOpacity>
+
+            <TouchableOpacity 
+              style={styles.modalButtonCancel} 
+              onPress={() => setShowEditModal(false)}
+            >
+              <Text style={styles.modalButtonCancelText}>CANCELAR</Text>
             </TouchableOpacity>
           </View>
-        </View>
+        </TouchableOpacity>
       </Modal>
 
-      <Modal visible={conditionsVisible} animationType="slide" transparent={true}>
-        <View style={styles.modalOverlay}>
-          <View style={styles.modalContent}>
-            <Text style={styles.modalTitle}>🩹 Condiciones Médicas</Text>
-            <ScrollView style={styles.tagsList}>
-              {medicalInfo.conditions.map((condition, index) => (
-                <View key={index} style={styles.conditionTag}>
-                  <Text style={styles.conditionText}>{condition}</Text>
-                  <TouchableOpacity onPress={() => handleRemoveCondition(index)}>
-                    <Text style={styles.conditionRemove}>×</Text>
-                  </TouchableOpacity>
-                </View>
-              ))}
-            </ScrollView>
-            <TouchableOpacity style={styles.addButton} onPress={handleAddCondition}>
-              <Text style={styles.addButtonText}>➕ Agregar Condición</Text>
-            </TouchableOpacity>
-            <TouchableOpacity style={styles.cancelButton} onPress={() => setConditionsVisible(false)}>
-              <Text style={styles.cancelButtonText}>Cerrar</Text>
-            </TouchableOpacity>
-          </View>
-        </View>
-      </Modal>
-
-      <Modal visible={emergencyContactsVisible} animationType="slide" transparent={true}>
-        <View style={styles.modalOverlay}>
-          <View style={styles.modalContent}>
-            <View style={styles.modalHeader}>
-              <Text style={styles.modalTitle}>🚨 Contactos Emergencia</Text>
-              <TouchableOpacity onPress={openAddContact}>
-                <Text style={styles.addContactButton}>➕</Text>
+      <Modal
+        visible={showContactsModal}
+        transparent={true}
+        animationType="slide"
+        onRequestClose={() => setShowContactsModal(false)}
+      >
+        <View style={styles.fullModalOverlay}>
+          <View style={styles.fullModalContent}>
+            <View style={styles.fullModalHeader}>
+              <Text style={styles.fullModalTitle}>Contactos de Emergencia</Text>
+              <TouchableOpacity onPress={() => setShowContactsModal(false)}>
+                <Text style={styles.closeButton}>X</Text>
               </TouchableOpacity>
             </View>
-            <ScrollView style={styles.contactsList}>
-              {emergencyContacts.map(contact => (
-                <View key={contact.id} style={styles.fullContactCard}>
-                  <View style={styles.contactIcon}>
-                    <Text style={styles.contactEmoji}>{contact.emoji}</Text>
+
+            <ScrollView style={styles.fullModalScroll}>
+              {userProfile.emergencyContacts.map((contact, index) => (
+                <View key={index} style={styles.editContactCard}>
+                  <View style={styles.contactAvatar}>
+                    <Text style={styles.contactAvatarText}>{contact.name.charAt(0)}</Text>
                   </View>
                   <View style={styles.contactInfo}>
                     <Text style={styles.contactName}>{contact.name}</Text>
-                    <Text style={styles.contactRelationship}>{contact.relationship}</Text>
+                    <Text style={styles.contactRelation}>{contact.relation}</Text>
                     <Text style={styles.contactPhone}>{contact.phone}</Text>
                   </View>
-                  <View style={styles.contactActions}>
-                    <TouchableOpacity style={styles.actionButton} onPress={() => handleCall(contact)}>
-                      <Text style={styles.actionIcon}>📞</Text>
-                    </TouchableOpacity>
-                    <TouchableOpacity style={styles.actionButton} onPress={() => openEditContact(contact)}>
-                      <Text style={styles.actionIcon}>✏️</Text>
-                    </TouchableOpacity>
-                    <TouchableOpacity style={styles.actionButton} onPress={() => handleDeleteContact(contact.id)}>
-                      <Text style={styles.actionIcon}>🗑️</Text>
-                    </TouchableOpacity>
-                  </View>
+                  <TouchableOpacity
+                    style={styles.deleteButton}
+                    onPress={() => removeContact(index)}
+                  >
+                    <Text style={styles.deleteButtonText}>Eliminar</Text>
+                  </TouchableOpacity>
                 </View>
               ))}
             </ScrollView>
-            <TouchableOpacity style={styles.cancelButton} onPress={() => setEmergencyContactsVisible(false)}>
-              <Text style={styles.cancelButtonText}>Cerrar</Text>
+
+            <TouchableOpacity style={styles.addButton} onPress={addContact}>
+              <Text style={styles.addButtonText}>+ Agregar Contacto</Text>
             </TouchableOpacity>
           </View>
         </View>
       </Modal>
 
-      <Modal visible={contactFormVisible} animationType="slide" transparent={true}>
-        <View style={styles.modalOverlay}>
-          <ScrollView>
-            <View style={styles.modalContent}>
-              <Text style={styles.modalTitle}>{editingContact ? '✏️ Editar' : '➕ Nuevo Contacto'}</Text>
-              <Text style={styles.inputLabel}>Ícono</Text>
-              <View style={styles.emojiGrid}>
-                {contactEmojis.map((emoji, index) => (
-                  <TouchableOpacity key={index} style={[styles.emojiButton, tempContact.emoji === emoji && styles.emojiSelected]} onPress={() => setTempContact({ ...tempContact, emoji })}>
-                    <Text style={styles.emojiChar}>{emoji}</Text>
-                  </TouchableOpacity>
-                ))}
-              </View>
-              <Text style={styles.inputLabel}>Nombre *</Text>
-              <TextInput style={styles.input} placeholder="Ej: María Rodas" value={tempContact.name} onChangeText={(text) => setTempContact({ ...tempContact, name: text })} />
-              <Text style={styles.inputLabel}>Relación</Text>
-              <TextInput style={styles.input} placeholder="Ej: Hija, Cuidadora" value={tempContact.relationship} onChangeText={(text) => setTempContact({ ...tempContact, relationship: text })} />
-              <Text style={styles.inputLabel}>Teléfono *</Text>
-              <TextInput style={styles.input} placeholder="+56987654321" value={tempContact.phone} onChangeText={(text) => setTempContact({ ...tempContact, phone: text })} keyboardType="phone-pad" />
-              <TouchableOpacity style={styles.saveButton} onPress={handleSaveContact}>
-                <Text style={styles.saveButtonText}>{editingContact ? '💾 Guardar' : '➕ Agregar'}</Text>
-              </TouchableOpacity>
-              <TouchableOpacity style={styles.cancelButton} onPress={() => setContactFormVisible(false)}>
-                <Text style={styles.cancelButtonText}>Cancelar</Text>
+      <Modal
+        visible={showMedicalModal}
+        transparent={true}
+        animationType="slide"
+        onRequestClose={() => setShowMedicalModal(false)}
+      >
+        <View style={styles.fullModalOverlay}>
+          <View style={styles.fullModalContent}>
+            <View style={styles.fullModalHeader}>
+              <Text style={styles.fullModalTitle}>Informacion Medica</Text>
+              <TouchableOpacity onPress={() => setShowMedicalModal(false)}>
+                <Text style={styles.closeButton}>X</Text>
               </TouchableOpacity>
             </View>
-          </ScrollView>
+
+            <ScrollView style={styles.fullModalScroll}>
+              <Text style={styles.medicalSectionTitle}>Alergias</Text>
+              {userProfile.allergies.map((allergy, index) => (
+                <View key={index} style={styles.medicalItem}>
+                  <Text style={styles.medicalItemText}>{allergy}</Text>
+                  <TouchableOpacity onPress={() => removeAllergy(index)}>
+                    <Text style={styles.deleteButtonText}>Eliminar</Text>
+                  </TouchableOpacity>
+                </View>
+              ))}
+              <TouchableOpacity style={styles.addButton} onPress={addAllergy}>
+                <Text style={styles.addButtonText}>+ Agregar Alergia</Text>
+              </TouchableOpacity>
+
+              <Text style={[styles.medicalSectionTitle, { marginTop: 30 }]}>Condiciones Medicas</Text>
+              {userProfile.conditions.map((condition, index) => (
+                <View key={index} style={styles.medicalItem}>
+                  <Text style={styles.medicalItemText}>{condition}</Text>
+                  <TouchableOpacity onPress={() => removeCondition(index)}>
+                    <Text style={styles.deleteButtonText}>Eliminar</Text>
+                  </TouchableOpacity>
+                </View>
+              ))}
+              <TouchableOpacity style={styles.addButton} onPress={addCondition}>
+                <Text style={styles.addButtonText}>+ Agregar Condicion</Text>
+              </TouchableOpacity>
+            </ScrollView>
+          </View>
         </View>
       </Modal>
-    </ScrollView>
+
+      <Modal
+        visible={showPersonalModal}
+        transparent={true}
+        animationType="slide"
+        onRequestClose={() => setShowPersonalModal(false)}
+      >
+        <View style={styles.fullModalOverlay}>
+          <View style={styles.fullModalContent}>
+            <View style={styles.fullModalHeader}>
+              <Text style={styles.fullModalTitle}>Datos Personales</Text>
+              <TouchableOpacity onPress={() => setShowPersonalModal(false)}>
+                <Text style={styles.closeButton}>X</Text>
+              </TouchableOpacity>
+            </View>
+
+            <ScrollView style={styles.fullModalScroll}>
+              <Text style={styles.inputLabel}>Nombre Completo</Text>
+              <TextInput
+                style={styles.input}
+                value={editName}
+                onChangeText={setEditName}
+                placeholder="Nombre completo"
+              />
+
+              <Text style={styles.inputLabel}>Email</Text>
+              <TextInput
+                style={styles.input}
+                value={editEmail}
+                onChangeText={setEditEmail}
+                placeholder="Email"
+                keyboardType="email-address"
+              />
+
+              <Text style={styles.inputLabel}>Telefono</Text>
+              <TextInput
+                style={styles.input}
+                value={editPhone}
+                onChangeText={setEditPhone}
+                placeholder="Telefono"
+                keyboardType="phone-pad"
+              />
+
+              <Text style={styles.inputLabel}>Fecha de Nacimiento</Text>
+              <TextInput
+                style={styles.input}
+                value={editBirthDate}
+                onChangeText={setEditBirthDate}
+                placeholder="DD/MM/AAAA"
+              />
+
+              <Text style={styles.inputLabel}>Tipo de Sangre</Text>
+              <TextInput
+                style={styles.input}
+                value={editBloodType}
+                onChangeText={setEditBloodType}
+                placeholder="Tipo de sangre"
+              />
+
+              <Text style={styles.inputLabel}>Direccion</Text>
+              <TextInput
+                style={[styles.input, styles.textArea]}
+                value={editAddress}
+                onChangeText={setEditAddress}
+                placeholder="Direccion completa"
+                multiline
+                numberOfLines={3}
+              />
+            </ScrollView>
+
+            <TouchableOpacity style={styles.saveButton} onPress={savePersonalData}>
+              <Text style={styles.saveButtonText}>Guardar Cambios</Text>
+            </TouchableOpacity>
+          </View>
+        </View>
+      </Modal>
+    </View>
   );
 }
 
-const InfoItem = ({ label, value, icon }) => (
-  <View style={styles.infoItem}>
-    <Text style={styles.infoLabel}>{icon ? `${icon} ` : ''}{label}</Text>
-    <Text style={styles.infoValue}>{value}</Text>
-  </View>
-);
-
 const styles = StyleSheet.create({
-  container: { flex: 1, backgroundColor: '#f5f5f5' },
-  header: { backgroundColor: '#0088CC', paddingTop: 60, paddingBottom: 30, alignItems: 'center' },
-  profileImageContainer: { position: 'relative', marginBottom: 15 },
-  profileImage: { width: 120, height: 120, borderRadius: 60, borderWidth: 4, borderColor: '#fff' },
-  profileImagePlaceholder: { width: 120, height: 120, borderRadius: 60, backgroundColor: '#fff', justifyContent: 'center', alignItems: 'center' },
-  profilePlaceholderIcon: { fontSize: 60, color: '#ccc' },
-  cameraButton: { position: 'absolute', bottom: 0, right: 0, width: 40, height: 40, borderRadius: 20, backgroundColor: '#4CAF50', justifyContent: 'center', alignItems: 'center', borderWidth: 3, borderColor: '#fff' },
-  cameraIcon: { fontSize: 18 },
-  profileName: { fontSize: 26, fontWeight: 'bold', color: '#fff', marginBottom: 5 },
-  profileEmail: { fontSize: 14, color: '#B3E5FC' },
-  section: { paddingHorizontal: 15, paddingTop: 20 },
-  sectionHeader: { flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center', marginBottom: 12 },
-  sectionTitle: { fontSize: 20, fontWeight: 'bold', color: '#333' },
-  editLink: { fontSize: 14, color: '#0088CC', fontWeight: '600' },
-  viewAllLink: { fontSize: 14, color: '#0088CC', fontWeight: '600' },
-  card: { backgroundColor: '#fff', borderRadius: 12, padding: 15, elevation: 2, marginBottom: 15 },
-  infoItem: { paddingVertical: 12, borderBottomWidth: 1, borderBottomColor: '#f0f0f0' },
-  infoLabel: { fontSize: 12, color: '#999', fontWeight: '600', marginBottom: 4 },
-  infoValue: { fontSize: 16, color: '#333', fontWeight: 'bold' },
-  menuItem: { backgroundColor: '#fff', borderRadius: 12, padding: 16, marginBottom: 10, flexDirection: 'row', alignItems: 'center', elevation: 2 },
-  menuIcon: { fontSize: 28, marginRight: 15 },
-  menuContent: { flex: 1 },
-  menuText: { fontSize: 16, fontWeight: '600', color: '#333' },
-  menuSubtext: { fontSize: 13, color: '#666', marginTop: 2 },
-  menuArrow: { fontSize: 24, color: '#ccc' },
-  contactCard: { backgroundColor: '#fff', borderRadius: 12, padding: 15, marginBottom: 12, flexDirection: 'row', alignItems: 'center', elevation: 2 },
-  contactIcon: { width: 50, height: 50, borderRadius: 25, backgroundColor: '#E3F2FD', justifyContent: 'center', alignItems: 'center', marginRight: 12 },
-  contactEmoji: { fontSize: 28 },
-  contactInfo: { flex: 1 },
-  contactName: { fontSize: 16, fontWeight: 'bold', color: '#333', marginBottom: 2 },
-  contactRelationship: { fontSize: 13, color: '#0088CC', marginBottom: 4 },
-  contactPhone: { fontSize: 13, color: '#666' },
-  callButton: { width: 44, height: 44, borderRadius: 22, backgroundColor: '#4CAF50', justifyContent: 'center', alignItems: 'center' },
-  callButtonIcon: { fontSize: 20 },
-  logoutButton: { margin: 15, marginTop: 30, backgroundColor: '#F44336', padding: 16, borderRadius: 12, flexDirection: 'row', justifyContent: 'center', alignItems: 'center', gap: 10 },
-  logoutIcon: { fontSize: 20 },
-  logoutText: { color: '#fff', fontSize: 16, fontWeight: 'bold' },
-  footer: { height: 100 },
-  modalOverlay: { flex: 1, backgroundColor: 'rgba(0,0,0,0.5)', justifyContent: 'center', padding: 20 },
-  modalScroll: { maxHeight: '90%' },
-  modalContent: { backgroundColor: '#fff', borderRadius: 20, padding: 24, maxHeight: '85%' },
-  modalHeader: { flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center', marginBottom: 20 },
-  modalTitle: { fontSize: 22, fontWeight: 'bold', color: '#333', textAlign: 'center' },
-  addContactButton: { fontSize: 28, color: '#4CAF50' },
-  inputLabel: { fontSize: 14, fontWeight: 'bold', color: '#666', marginBottom: 8, marginTop: 12 },
-  input: { backgroundColor: '#f5f5f5', padding: 12, borderRadius: 8, fontSize: 16, borderWidth: 1, borderColor: '#e0e0e0' },
-  textArea: { height: 80, textAlignVertical: 'top' },
-  tagsList: { maxHeight: 300, marginBottom: 15 },
-  allergyTag: { flexDirection: 'row', backgroundColor: '#FFE5E5', paddingHorizontal: 15, paddingVertical: 10, borderRadius: 20, alignItems: 'center', justifyContent: 'space-between', marginBottom: 10 },
-  allergyText: { fontSize: 15, color: '#F44336', fontWeight: '600', flex: 1 },
-  allergyRemove: { fontSize: 24, color: '#F44336', fontWeight: 'bold', marginLeft: 10 },
-  conditionTag: { flexDirection: 'row', backgroundColor: '#E3F2FD', paddingHorizontal: 15, paddingVertical: 10, borderRadius: 20, alignItems: 'center', justifyContent: 'space-between', marginBottom: 10 },
-  conditionText: { fontSize: 15, color: '#0088CC', fontWeight: '600', flex: 1 },
-  conditionRemove: { fontSize: 24, color: '#0088CC', fontWeight: 'bold', marginLeft: 10 },
-  contactsList: { maxHeight: 400, marginBottom: 15 },
-  fullContactCard: { backgroundColor: '#f8f8f8', borderRadius: 12, padding: 15, marginBottom: 12, flexDirection: 'row', alignItems: 'center' },
-  contactActions: { flexDirection: 'row', gap: 8 },
-  actionButton: { width: 40, height: 40, borderRadius: 20, backgroundColor: '#fff', justifyContent: 'center', alignItems: 'center', elevation: 2 },
-  actionIcon: { fontSize: 18 },
-  emojiGrid: { flexDirection: 'row', flexWrap: 'wrap', gap: 10, marginBottom: 15 },
-  emojiButton: { width: 50, height: 50, borderRadius: 25, backgroundColor: '#f5f5f5', justifyContent: 'center', alignItems: 'center', borderWidth: 2, borderColor: '#e0e0e0' },
-  emojiSelected: { borderColor: '#0088CC', backgroundColor: '#E3F2FD' },
-  emojiChar: { fontSize: 28 },
-  addButton: { backgroundColor: '#4CAF50', padding: 16, borderRadius: 12, alignItems: 'center', marginBottom: 10 },
-  addButtonText: { color: '#fff', fontWeight: 'bold', fontSize: 16 },
-  saveButton: { backgroundColor: '#4CAF50', padding: 16, borderRadius: 12, alignItems: 'center', marginTop: 20 },
-  saveButtonText: { color: '#fff', fontWeight: 'bold', fontSize: 16 },
-  cancelButton: { backgroundColor: '#f0f0f0', padding: 16, borderRadius: 12, alignItems: 'center', marginTop: 10 },
-  cancelButtonText: { color: '#666', fontWeight: 'bold', fontSize: 15 }
+  container: {
+    flex: 1,
+    backgroundColor: '#f5f5f5'
+  },
+  header: {
+    backgroundColor: '#0088CC',
+    paddingTop: 60,
+    paddingBottom: 30,
+    alignItems: 'center'
+  },
+  avatarContainer: {
+    width: 100,
+    height: 100,
+    borderRadius: 50,
+    backgroundColor: '#fff',
+    justifyContent: 'center',
+    alignItems: 'center',
+    marginBottom: 15
+  },
+  avatarText: {
+    fontSize: 40,
+    fontWeight: 'bold',
+    color: '#0088CC'
+  },
+  userName: {
+    fontSize: 24,
+    fontWeight: 'bold',
+    color: '#fff',
+    marginBottom: 5
+  },
+  userEmail: {
+    fontSize: 14,
+    color: '#B3E5FC',
+    marginBottom: 15
+  },
+  editButton: {
+    backgroundColor: '#fff',
+    paddingHorizontal: 30,
+    paddingVertical: 10,
+    borderRadius: 20
+  },
+  editButtonText: {
+    color: '#0088CC',
+    fontWeight: 'bold',
+    fontSize: 14
+  },
+  section: {
+    marginTop: 20,
+    paddingHorizontal: 15
+  },
+  sectionTitle: {
+    fontSize: 18,
+    fontWeight: 'bold',
+    color: '#333',
+    marginBottom: 15
+  },
+  sectionHeader: {
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    alignItems: 'center',
+    marginBottom: 15
+  },
+  viewAll: {
+    fontSize: 14,
+    color: '#0088CC',
+    fontWeight: '600'
+  },
+  infoCard: {
+    backgroundColor: '#fff',
+    borderRadius: 12,
+    padding: 15,
+    elevation: 2
+  },
+  infoRow: {
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    paddingVertical: 12,
+    borderBottomWidth: 1,
+    borderBottomColor: '#f0f0f0'
+  },
+  infoLabel: {
+    fontSize: 12,
+    color: '#999',
+    fontWeight: '600'
+  },
+  infoValue: {
+    fontSize: 14,
+    color: '#333',
+    fontWeight: '500',
+    flex: 1,
+    textAlign: 'right'
+  },
+  medicalCard: {
+    backgroundColor: '#fff',
+    borderRadius: 12,
+    padding: 15,
+    marginBottom: 10,
+    flexDirection: 'row',
+    alignItems: 'center',
+    elevation: 2
+  },
+  medicalIcon: {
+    width: 50,
+    height: 50,
+    borderRadius: 25,
+    backgroundColor: '#FFF3E0',
+    justifyContent: 'center',
+    alignItems: 'center',
+    marginRight: 15
+  },
+  medicalIconText: {
+    fontSize: 24,
+    color: '#FF9800'
+  },
+  medicalInfo: {
+    flex: 1
+  },
+  medicalTitle: {
+    fontSize: 16,
+    fontWeight: 'bold',
+    color: '#333',
+    marginBottom: 4
+  },
+  medicalSubtitle: {
+    fontSize: 14,
+    color: '#999'
+  },
+  arrow: {
+    fontSize: 24,
+    color: '#ccc'
+  },
+  contactCard: {
+    backgroundColor: '#fff',
+    borderRadius: 12,
+    padding: 15,
+    marginBottom: 10,
+    flexDirection: 'row',
+    alignItems: 'center',
+    elevation: 2
+  },
+  contactAvatar: {
+    width: 50,
+    height: 50,
+    borderRadius: 25,
+    backgroundColor: '#E3F2FD',
+    justifyContent: 'center',
+    alignItems: 'center',
+    marginRight: 15
+  },
+  contactAvatarText: {
+    fontSize: 20,
+    fontWeight: 'bold',
+    color: '#0088CC'
+  },
+  contactInfo: {
+    flex: 1
+  },
+  contactName: {
+    fontSize: 16,
+    fontWeight: 'bold',
+    color: '#333',
+    marginBottom: 2
+  },
+  contactRelation: {
+    fontSize: 14,
+    color: '#0088CC',
+    marginBottom: 4
+  },
+  contactPhone: {
+    fontSize: 13,
+    color: '#666'
+  },
+  callButton: {
+    backgroundColor: '#4CAF50',
+    paddingHorizontal: 20,
+    paddingVertical: 10,
+    borderRadius: 20
+  },
+  callButtonText: {
+    color: '#fff',
+    fontWeight: 'bold',
+    fontSize: 12
+  },
+  logoutButton: {
+    backgroundColor: '#f44336',
+    marginHorizontal: 15,
+    marginTop: 30,
+    padding: 15,
+    borderRadius: 12,
+    alignItems: 'center'
+  },
+  logoutButtonText: {
+    color: '#fff',
+    fontSize: 16,
+    fontWeight: 'bold'
+  },
+  bottomSpace: {
+    height: 100
+  },
+  modalOverlay: {
+    flex: 1,
+    backgroundColor: 'rgba(0, 0, 0, 0.5)',
+    justifyContent: 'center',
+    alignItems: 'center'
+  },
+  modalContent: {
+    backgroundColor: '#fff',
+    borderRadius: 12,
+    padding: 20,
+    width: '85%',
+    maxWidth: 400
+  },
+  modalTitle: {
+    fontSize: 20,
+    fontWeight: 'bold',
+    color: '#333',
+    marginBottom: 10
+  },
+  modalSubtitle: {
+    fontSize: 14,
+    color: '#666',
+    marginBottom: 20
+  },
+  modalButton: {
+    backgroundColor: '#fff',
+    borderWidth: 0,
+    paddingVertical: 15,
+    paddingHorizontal: 20,
+    borderRadius: 8,
+    marginBottom: 10,
+    alignItems: 'flex-end'
+  },
+  modalButtonText: {
+    color: '#0088CC',
+    fontSize: 14,
+    fontWeight: '600'
+  },
+  modalButtonCancel: {
+    backgroundColor: '#fff',
+    borderWidth: 0,
+    paddingVertical: 15,
+    paddingHorizontal: 20,
+    borderRadius: 8,
+    marginTop: 5,
+    alignItems: 'flex-end'
+  },
+  modalButtonCancelText: {
+    color: '#999',
+    fontSize: 14,
+    fontWeight: '600'
+  },
+  fullModalOverlay: {
+    flex: 1,
+    backgroundColor: 'rgba(0, 0, 0, 0.5)',
+    justifyContent: 'flex-end'
+  },
+  fullModalContent: {
+    backgroundColor: '#fff',
+    borderTopLeftRadius: 20,
+    borderTopRightRadius: 20,
+    height: '85%',
+    paddingTop: 20
+  },
+  fullModalHeader: {
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    alignItems: 'center',
+    paddingHorizontal: 20,
+    paddingBottom: 20,
+    borderBottomWidth: 1,
+    borderBottomColor: '#f0f0f0'
+  },
+  fullModalTitle: {
+    fontSize: 22,
+    fontWeight: 'bold',
+    color: '#333'
+  },
+  closeButton: {
+    fontSize: 24,
+    color: '#999',
+    fontWeight: 'bold'
+  },
+  fullModalScroll: {
+    flex: 1,
+    paddingHorizontal: 20,
+    paddingTop: 20
+  },
+  editContactCard: {
+    backgroundColor: '#f9f9f9',
+    borderRadius: 12,
+    padding: 15,
+    marginBottom: 10,
+    flexDirection: 'row',
+    alignItems: 'center'
+  },
+  deleteButton: {
+    backgroundColor: '#ffebee',
+    paddingHorizontal: 15,
+    paddingVertical: 8,
+    borderRadius: 15
+  },
+  deleteButtonText: {
+    color: '#f44336',
+    fontSize: 12,
+    fontWeight: 'bold'
+  },
+  addButton: {
+    backgroundColor: '#0088CC',
+    padding: 15,
+    borderRadius: 12,
+    alignItems: 'center',
+    margin: 20
+  },
+  addButtonText: {
+    color: '#fff',
+    fontSize: 16,
+    fontWeight: 'bold'
+  },
+  medicalSectionTitle: {
+    fontSize: 18,
+    fontWeight: 'bold',
+    color: '#333',
+    marginBottom: 15
+  },
+  medicalItem: {
+    backgroundColor: '#f9f9f9',
+    borderRadius: 12,
+    padding: 15,
+    marginBottom: 10,
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    alignItems: 'center'
+  },
+  medicalItemText: {
+    fontSize: 16,
+    color: '#333',
+    flex: 1
+  },
+  inputLabel: {
+    fontSize: 14,
+    fontWeight: 'bold',
+    color: '#333',
+    marginBottom: 8,
+    marginTop: 15
+  },
+  input: {
+    backgroundColor: '#f9f9f9',
+    borderRadius: 12,
+    padding: 15,
+    fontSize: 16,
+    borderWidth: 1,
+    borderColor: '#e0e0e0'
+  },
+  textArea: {
+    height: 80,
+    textAlignVertical: 'top'
+  },
+  saveButton: {
+    backgroundColor: '#0088CC',
+    padding: 15,
+    borderRadius: 12,
+    alignItems: 'center',
+    margin: 20
+  },
+  saveButtonText: {
+    color: '#fff',
+    fontSize: 16,
+    fontWeight: 'bold'
+  }
 });
+
